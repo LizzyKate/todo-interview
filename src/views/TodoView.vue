@@ -1,47 +1,87 @@
 <script lang="ts">
-import { ref } from 'vue'
+import { useTodoStore } from '@/stores/todo'
+import { defineComponent, ref, computed, onMounted } from 'vue'
+import type { Ref } from 'vue'
 
-interface Todo {
-  id: number
-  text: string
-  completed: boolean
-}
-
-export default {
+export default defineComponent({
   setup() {
-    const todos = ref<Todo[]>([
-      {
-        id: 1,
-        text: 'Example Todo',
-        completed: false
-      },
-      {
-        id: 2,
-        text: 'Example Todo 2',
-        completed: false
-      },
-      {
-        id: 3,
-        text: 'Example Todo 3',
-        completed: false
-      },
-      {
-        id: 4,
-        text: 'Example Todo 4',
-        completed: false
-      },
-      {
-        id: 5,
-        text: 'Example Todo 5',
-        completed: false
+    const store = useTodoStore()
+    const todoList = computed(() => store.todos)
+    const todoLength = ref(todoList.value.length)
+    const todo: Ref<string> = ref('')
+    const showDeleteButton: Ref<{ [key: number]: boolean }> = ref({})
+
+    const mouseOver = (index: any) => {
+      showDeleteButton.value[index] = true
+    }
+
+    const mouseLeave = (index: any) => {
+      showDeleteButton.value[index] = false
+    }
+
+    const addTodo = () => {
+      if (!todo.value) return
+      store.addTodo(todo.value)
+      todo.value = ''
+      todoLength.value++
+      localStorage.setItem('todoLength', todoLength.value.toString())
+    }
+
+    const deleteTodo = (index: any) => {
+      store.deleteTodo(index)
+      todoLength.value--
+      localStorage.setItem('todoLength', todoLength.value.toString())
+    }
+
+    const markTodoAsCompleted = (index: any) => {
+      store.markAsCompleted(index)
+      const completedTodos = todoList.value.filter((todo) => !todo.completed)
+      todoLength.value = completedTodos.length
+      localStorage.setItem('todoLength', todoLength.value.toString())
+
+      return todoLength.value
+    }
+
+    const storeTodoLength = () => {
+      localStorage.setItem('todoLength', todoLength.value.toString())
+    }
+
+    const getTodoLength = () => {
+      const todoNumber = localStorage.getItem('todoLength')
+      if (todoNumber) {
+        return (todoLength.value = parseInt(todoNumber))
       }
-    ])
+    }
+
+    const getAllTodos = () => {
+      store.displayAllTodos()
+    }
+
+    const getCompletedTodos = () => {
+      const completedTodos = store.displayCompletedTodos()
+    }
+
+    onMounted(() => {
+      store.initializeStore()
+      getTodoLength()
+      storeTodoLength()
+    })
 
     return {
-      todos
+      todoList,
+      todo,
+      addTodo,
+      showDeleteButton,
+      mouseOver,
+      mouseLeave,
+      deleteTodo,
+      markTodoAsCompleted,
+      todoLength,
+      getAllTodos,
+      getCompletedTodos
     }
   }
-}
+})
 </script>
 
 <template>
@@ -60,6 +100,8 @@ export default {
             <input
               class="h-16 bg-[#25273D] rounded-md shadow-3xl w-full focus:outline-none pl-16 py-5 text-white placeholder:text-[#767992] font-normal text-lg tracking-xs"
               placeholder="Create a new todo…"
+              v-model="todo"
+              @keyup.enter="addTodo"
             />
           </label>
         </div>
@@ -68,23 +110,44 @@ export default {
     <div class="bg-[#171823] __parent max-h-full relative flex justify-center">
       <div
         class="w-[540px] absolute top-[-40px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
+        v-if="todoList.length > 0"
       >
-        <div v-for="todo in todos" :key="todo.id">
-          <label class="inline-flex items-center px-6 py-5">
-            <input
-              type="checkbox"
-              class="form-checkbox text-indigo-600 w-6 h-6 bg-transparent border border-[#393a4b] rounded-full focus:outline-none focus:border-[#393a4b]"
-            />
-            <span class="ml-3 text-[#C8CBE7] text-lg font-normal tracking-xs">{{ todo.text }}</span>
-          </label>
+        <div v-for="todo in todoList" :key="todo.id">
+          <div
+            class="px-6 py-5 flex justify-between items-center"
+            @mouseover="mouseOver(todo.id)"
+            @mouseleave="mouseLeave(todo.id)"
+          >
+            <label class="inline-flex items-center">
+              <input
+                type="checkbox"
+                :checked="todo.completed"
+                class="form-checkbox text-indigo-600 w-6 h-6 bg-transparent border border-[#393a4b] rounded-full focus:outline-none focus:border-[#393a4b]"
+                @click="() => markTodoAsCompleted(todo.id)"
+              />
+              <span class="ml-3 text-[#C8CBE7] text-lg font-normal tracking-xs">{{
+                todo.text
+              }}</span>
+            </label>
+            <button v-if="showDeleteButton[todo.id]" @click="() => deleteTodo(todo.id)">
+              <i class="ri-close-line text-xl text-[#c8cbe7]"></i>
+            </button>
+          </div>
           <div class="w-full bg-[#393A4B] h-[1px]"></div>
         </div>
         <div class="mt-4 px-6 flex items-center justify-between">
-          <p class="text-[#5B5E7E] text-sm font-normal tracking-xxs">5 items left</p>
+          <p class="text-[#5B5E7E] text-sm font-normal tracking-xxs">{{ todoLength }} items left</p>
           <div class="flex items-center-justify-between">
-            <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs">All</button>
+            <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs" @click="getAllTodos">
+              All
+            </button>
             <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4">Active</button>
-            <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4">Completed</button>
+            <button
+              class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
+              @click="getCompletedTodos"
+            >
+              Completed
+            </button>
           </div>
           <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs">Clear Completed</button>
         </div>
@@ -93,18 +156,4 @@ export default {
   </section>
 </template>
 
-<style scoped>
-.__container {
-  background-image: url('@/assets/images/bg.png');
-}
-.__parent {
-  height: calc(100vh - 300px);
-}
-::-webkit-scrollbar {
-  display: none;
-}
-input[type='checkbox']:checked + span {
-  text-decoration: line-through;
-  color: #4d5067;
-}
-</style>
+<style scoped></style>
