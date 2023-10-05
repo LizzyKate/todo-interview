@@ -3,7 +3,7 @@
 ![Todo APP]('/todo.png')
 
 
-This is a todo app that keep tracks of tasks and shows tasks are done
+This is a todo app that keeps track of tasks and shows tasks are done
 
 ## Features
 
