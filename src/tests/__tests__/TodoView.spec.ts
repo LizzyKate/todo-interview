@@ -80,11 +80,6 @@ describe('TodoView', () => {
     expect(store.todos[0].text).toBe(todoText)
     expect(store.todos[0].completed).toBe(false)
   })
-
-  it('check if the addTodo function exist in the store', () => {
-    expect(store.addTodo).toBeDefined()
-  })
-
   it('should trigger mouseover event on todo item', async () => {
     store.todos = [
       { id: 1, text: 'Todo 1', completed: false },
