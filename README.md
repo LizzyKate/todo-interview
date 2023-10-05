@@ -1,25 +1,61 @@
-# todo
+# Todo
 
-This template should help get you started developing with Vue 3 in Vite.
+![Todo APP](Image URL)
 
-## Recommended IDE Setup
+This is a todo app that keep tracks of tasks and shows tasks are done
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Features
 
-## Type Support for `.vue` Imports in TS
+### Creating Todo Items:
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+Anonymous users can create todo items.
+An input box is provided for entering the task description.
+Users can press the enter key to add a new todo item.
+Newly created todo items are displayed in the list.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+### Viewing Empty List:
 
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+When there are no todo items, the main page shows an input box in focus.
 
-## Customize configuration
+### Marking Todo Items as Done:
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+Users can mark todo items as completed by clicking on a checkbox next to the item.
+Completed items have a grayed-out appearance with a strike-through style.
+The number of remaining incompleted items is updated.
+A "Clear completed" button is displayed to remove completed items.
+
+### Filtering Todo Items:
+
+Users can filter todo items based on their status (All, Active, Completed).
+Clicking the "Active" button displays only incompleted items.
+Clicking the "Completed" button displays only completed items.
+Clicking the "All" button shows all todo items.
+
+### Removing Todo Items:
+
+Users can remove individual completed todo items by hovering over them and clicking a cross icon.
+Bulk removal of completed items is possible by clicking the "Clear completed" button.
+
+### Removing Todo Items:
+
+Users can remove individual completed todo items by hovering over them and clicking a cross icon.
+Bulk removal of completed items is possible by clicking the "Clear completed" button.
+
+## Technologies
+
+Vue3
+Composition Api
+Typescript
+Css
+Tailwind Css
+Pinia
+Pnpm
+
+## Getting Started
+
+Clone the repository to your local machine.
+Install the required dependencies using pnpm install.
+Run the development server using pnpm dev.
 
 ## Project Setup
 
