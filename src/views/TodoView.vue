@@ -148,7 +148,7 @@ export default defineComponent({
             </button>
 
             <input
-              class="h-16 bg-[#25273D] rounded-md shadow-3xl w-full focus:outline-none pl-16 py-5 text-white placeholder:text-[#767992] font-normal text-lg tracking-xs"
+              class="h-16 bg-[#25273D] rounded-md shadow-3xl w-full focus:outline-none pl-16 pr-4 py-5 text-white placeholder:text-[#767992] font-normal text-lg tracking-xs"
               placeholder="Create a new todo…"
               v-model="todo"
               @keyup.enter="addTodo"
@@ -175,7 +175,7 @@ export default defineComponent({
                 class="form-checkbox text-indigo-600 w-6 h-6 bg-transparent border border-[#393a4b] rounded-full focus:outline-none focus:border-[#393a4b]"
                 @click="() => markTodoAsCompleted(todo.id)"
               />
-              <span class="ml-3 text-[#C8CBE7] text-lg font-normal tracking-xs">{{
+              <span class="ml-3 text-[#C8CBE7] text-lg font-normal tracking-xs break-all">{{
                 todo.text
               }}</span>
             </label>
