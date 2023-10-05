@@ -8,65 +8,43 @@ export default defineComponent({
     const store = useTodoStore()
     const todoList = computed(() => store.todos)
     const todoListRef = ref(todoList.value) // Create a reactive ref
-    const todoLength = ref(todoList.value.length)
+    const todoLength = computed(() => store.todoLength)
     const todo: Ref<string> = ref('')
     let useRefList = false
-    const showDeleteButton: Ref<{ [key: number]: boolean }> = ref({})
+    const showDeleteButton = store.showDeleteButton
 
     const mouseOver = (index: any) => {
-      showDeleteButton.value[index] = true
+      store.updateShowDeleteButton(index, true)
     }
 
     const mouseLeave = (index: any) => {
-      showDeleteButton.value[index] = false
+      store.updateShowDeleteButton(index, false)
     }
 
     const storeTodoLength = () => {
-      localStorage.setItem('todoLength', todoLength.value.toString())
+      store.storeTodoLength()
     }
 
     const getTodoLength = () => {
-      const todoNumber = localStorage.getItem('todoLength')
-      if (todoNumber) {
-        return (todoLength.value = parseInt(todoNumber))
-      }
+      store.getTodoLength()
     }
 
     const addTodo = () => {
       if (!todo.value) return
       store.addTodo(todo.value)
       todo.value = ''
-      todoLength.value++
-      localStorage.setItem('todoLength', todoLength.value.toString())
     }
 
     const deleteTodo = (index: any) => {
       store.deleteTodo(index)
-      todoLength.value--
-      localStorage.setItem('todoLength', todoLength.value.toString())
     }
 
     const markTodoAsCompleted = (index: any) => {
       store.markAsCompleted(index)
-      const completedTodos = todoList.value.filter((todo) => !todo.completed)
-
-      todoLength.value = completedTodos.length
-      localStorage.setItem('todoLength', todoLength.value.toString())
-
-      return todoLength.value
     }
 
     const markAllTodosAsCompleted = () => {
       store.markAllTodosAsCompleted()
-      const allCompleted = todoList.value.every((todo) => todo.completed)
-
-      if (allCompleted) {
-        todoLength.value = 0
-      } else {
-        todoLength.value = todoList.value.length
-      }
-
-      localStorage.setItem('todoLength', todoLength.value.toString())
     }
 
     const markAllButtonClass = computed(() => {
@@ -149,11 +127,11 @@ export default defineComponent({
     <div class="bg-[#171823] __parent max-h-full relative flex justify-center">
       <div
         class="w-[540px] absolute top-[-40px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
-        v-if="currentTodoList.length > 0"
+        v-if="currentTodoList && currentTodoList.length > 0"
       >
         <div v-for="todo in currentTodoList" :key="todo.id">
           <div
-            class="px-6 py-5 flex justify-between items-center"
+            class="px-6 py-5 flex justify-between items-center __todo-item"
             @mouseover="mouseOver(todo.id)"
             @mouseleave="mouseLeave(todo.id)"
           >
