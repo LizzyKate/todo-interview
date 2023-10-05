@@ -12,7 +12,7 @@ export default defineComponent({
     const showCompletedTodos = ref(false)
     const todoLength = computed(() => store.todoLength)
     const todo: Ref<string> = ref('')
-    const currentFilter = ref('all')
+    const currentFilter: Ref<string | null> = ref('')
 
     const showDeleteButton = store.showDeleteButton
 
@@ -28,6 +28,28 @@ export default defineComponent({
       } else if (showCompletedTodos.value) {
         store.displayCompletedTodos()
       }
+      // Save the current filter state to localStorage
+      localStorage.setItem('currentFilter', currentFilter.value)
+    }
+
+    const displayTodos = () => {
+      currentFilter.value = localStorage.getItem('currentFilter')
+      if (currentFilter.value === 'active') {
+        showActiveTodos.value = true
+        showAllTodos.value = false
+        showCompletedTodos.value = false
+        store.displayActiveTodos()
+      } else if (currentFilter.value === 'completed') {
+        showCompletedTodos.value = true
+        showAllTodos.value = false
+        showActiveTodos.value = false
+        store.displayCompletedTodos()
+      } else {
+        showAllTodos.value = true
+        showActiveTodos.value = false
+        showCompletedTodos.value = false
+        store.displayAllTodos()
+      }
     }
 
     const filteredTodos = computed(() => {
@@ -40,21 +62,6 @@ export default defineComponent({
       }
       return []
     })
-
-    const displayTodos = () => {
-      const savedFilter = localStorage.getItem('currentFilter')
-      if (savedFilter) {
-        currentFilter.value = savedFilter
-      }
-      if (currentFilter.value === 'all') {
-        console.log('all')
-        store.displayAllTodos()
-      } else if (currentFilter.value === 'active') {
-        store.displayActiveTodos()
-      } else if (currentFilter.value === 'completed') {
-        store.displayCompletedTodos()
-      }
-    }
 
     const mouseOver = (index: any) => {
       store.updateShowDeleteButton(index, true)
@@ -90,11 +97,12 @@ export default defineComponent({
       store.markAllTodosAsCompleted()
     }
 
+    const allTodosCompleted = computed(() => {
+      return todoList.value.every((todo) => todo.completed)
+    })
+
     const markAllButtonClass = computed(() => {
-      return true
-      // return currentTodoList.value.every((todo) => todo.completed)
-      //   ? 'text-white text-lg'
-      //   : 'text-gray-500 text-lg'
+      return allTodosCompleted.value ? 'text-white' : 'text-gray-500 '
     })
 
     const clearTodoList = () => {
@@ -120,7 +128,8 @@ export default defineComponent({
       markAllButtonClass,
       todoList,
       filteredTodos,
-      toggleFilter
+      toggleFilter,
+      currentFilter
     }
   }
 })
@@ -133,11 +142,10 @@ export default defineComponent({
     >
       <div class="w-[540px]">
         <h1 class="text-3xl font-bold tracking-widest text-white">TODO</h1>
-        {}
         <div class="mt-12 relative">
           <label class="flex items-center">
             <button class="absolute left-4" @click="markAllTodosAsCompleted">
-              <i :class="`ri-arrow-down-s-line text-white text-lg ${markAllButtonClass}`"></i>
+              <i :class="`ri-arrow-down-s-line text-lg ${markAllButtonClass}`"></i>
             </button>
 
             <input
@@ -185,19 +193,25 @@ export default defineComponent({
             </p>
             <div class="flex items-center-justify-between">
               <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                  currentFilter === 'all' ? 'border border-white p-2 rounded-md' : ''
+                }`"
                 @click="() => toggleFilter('all')"
               >
                 All
               </button>
               <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                  currentFilter === 'active' ? 'border border-white p-2 rounded-md' : ''
+                }`"
                 @click="() => toggleFilter('active')"
               >
                 Active
               </button>
               <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                  currentFilter === 'completed' ? 'border border-white p-2 rounded-md' : ''
+                }`"
                 @click="() => toggleFilter('completed')"
               >
                 Completed
