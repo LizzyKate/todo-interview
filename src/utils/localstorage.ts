@@ -9,7 +9,11 @@ const store = ({ key, value }: IStore) => {
 
 const get = ({ key }: IStore) => {
   const storedValue = localStorage.getItem(key)
-  return storedValue ? JSON.parse(storedValue) : null
+  return storedValue ? JSON.parse(storedValue) : []
 }
 
-export { store, get }
+const clear = () => {
+  localStorage.clear()
+}
+
+export { store, get, clear }

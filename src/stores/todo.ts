@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Todo } from '@/types/todo'
-import { store, get } from '@/utils/localstorage'
+import { store, get, clear } from '@/utils/localstorage'
 
 interface TodoState {
   todos: Todo[]
@@ -9,25 +9,10 @@ interface TodoState {
 
 export const useTodoStore = defineStore('todo', {
   state: () => ({
-    todos: [] as Todo[],
+    todos: get({ key: 'todos' }) as Todo[],
     todosClone: [] as Todo[]
   }),
-  getters: {
-    // displayCompletedTodos: (state) => {
-    //   const completedTodos = state.todos.filter((todo) => todo.completed)
-    //   state.todos = completedTodos
-    //   return state.todos
-    // },
-  },
   actions: {
-    initializeStore(this: TodoState) {
-      const storedTodos = get({ key: 'todos' })
-      if (storedTodos) {
-        this.todos = [...storedTodos]
-        this.todosClone = [...storedTodos]
-      }
-      return this.todos
-    },
     // add item to todos
     addTodo(this: TodoState, text: string) {
       const newTodo: Todo = {
@@ -54,8 +39,20 @@ export const useTodoStore = defineStore('todo', {
       this.todosClone = [...this.todos]
     },
 
+    markAllTodosAsCompleted(this: TodoState) {
+      this.todosClone = this.todos
+
+      const updatedTodos = this.todosClone.map((todo) => ({
+        ...todo,
+        completed: !todo.completed
+      }))
+      store({ key: 'todos', value: updatedTodos })
+      this.todos = [...updatedTodos]
+      this.todosClone = [...this.todos]
+    },
     // toggle completed status of todo item
     markAsCompleted(this: TodoState, id: number) {
+      this.todosClone = this.todos
       const updatedTodos = this.todosClone.map((todo) => {
         if (todo.id === id) {
           return {
@@ -65,18 +62,27 @@ export const useTodoStore = defineStore('todo', {
         }
         return todo
       })
-      store({ key: 'todos', value: updatedTodos })
       this.todos = [...updatedTodos]
-      this.todosClone = [...this.todos]
+      store({ key: 'todos', value: updatedTodos })
     },
 
     displayAllTodos(this: TodoState) {
-      console.log(this.todos)
-      return this.todos
+      this.todosClone = this.todos
+      return [...this.todosClone]
     },
 
     displayCompletedTodos(this: TodoState) {
+      this.todosClone = this.todos
       return this.todosClone.filter((todo) => todo.completed)
+    },
+    displayActiveTodos(this: TodoState) {
+      return this.todosClone.filter((todo) => !todo.completed)
+    },
+
+    clearTodos(this: TodoState) {
+      clear()
+      this.todos = []
+      this.todosClone = []
     }
   }
 })

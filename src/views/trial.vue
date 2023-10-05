@@ -1,16 +1,15 @@
 <script lang="ts">
 import { useTodoStore } from '@/stores/todo'
-import { defineComponent, ref, onMounted, computed } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue'
 import type { Ref } from 'vue'
 
 export default defineComponent({
   setup() {
     const store = useTodoStore()
-    const todoList = computed(() => store.todos)
-    const todoListRef = ref(todoList.value) // Create a reactive ref
-    const todoLength = ref(todoList.value.length)
+    const todoList = computed(() => store.getTodos)
+    const todoListClone = ref(todoList.value)
+    const todoLength = ref(todoListClone.value.length)
     const todo: Ref<string> = ref('')
-    let useRefList = false
     const showDeleteButton: Ref<{ [key: number]: boolean }> = ref({})
 
     const mouseOver = (index: any) => {
@@ -19,17 +18,6 @@ export default defineComponent({
 
     const mouseLeave = (index: any) => {
       showDeleteButton.value[index] = false
-    }
-
-    const storeTodoLength = () => {
-      localStorage.setItem('todoLength', todoLength.value.toString())
-    }
-
-    const getTodoLength = () => {
-      const todoNumber = localStorage.getItem('todoLength')
-      if (todoNumber) {
-        return (todoLength.value = parseInt(todoNumber))
-      }
     }
 
     const addTodo = () => {
@@ -48,61 +36,41 @@ export default defineComponent({
 
     const markTodoAsCompleted = (index: any) => {
       store.markAsCompleted(index)
-      const completedTodos = todoList.value.filter((todo) => !todo.completed)
-
+      const completedTodos = todoListClone.value.filter((todo) => !todo.completed)
       todoLength.value = completedTodos.length
       localStorage.setItem('todoLength', todoLength.value.toString())
 
       return todoLength.value
     }
 
-    const markAllTodosAsCompleted = () => {
-      store.markAllTodosAsCompleted()
-      const allCompleted = todoList.value.every((todo) => todo.completed)
-
-      if (allCompleted) {
-        todoLength.value = 0
-      } else {
-        todoLength.value = todoList.value.length
-      }
-
+    const storeTodoLength = () => {
       localStorage.setItem('todoLength', todoLength.value.toString())
     }
 
-    const markAllButtonClass = computed(() => {
-      return currentTodoList.value.every((todo) => todo.completed)
-        ? 'text-white text-lg'
-        : 'text-gray-500 text-lg'
-    })
+    const getTodoLength = () => {
+      const todoNumber = localStorage.getItem('todoLength')
+      if (todoNumber) {
+        return (todoLength.value = parseInt(todoNumber))
+      }
+    }
 
     const getAllTodos = () => {
-      store.displayAllTodos()
+      const allTodos = store.displayAllTodos()
+      todoListClone.value = allTodos
     }
 
-    // const getCompletedTodos = () => {
-    //   const completedTodos = store.displayCompletedTodos()
-    //   todoListRef.value = completedTodos
-    //   console.log(todoListRef.value)
-    //   useRefList = true
-    // }
-    // const getActiveTodos = () => {
-    //   const activeTodos = store.displayActiveTodos()
-    //   todoListClone.value = activeTodos
-    // }
-
-    const currentTodoList = computed(() => {
-      return useRefList ? todoListRef.value : todoList.value
-    })
-
-    const clearTodoList = () => {
-      store.clearTodos()
+    const getCompletedTodos = () => {
+      const completedTodos = store.displayCompletedTodos()
+      todoListClone.value = completedTodos
     }
+
     onMounted(() => {
       getTodoLength()
       storeTodoLength()
     })
 
     return {
+      todoListClone,
       todo,
       addTodo,
       showDeleteButton,
@@ -112,12 +80,7 @@ export default defineComponent({
       markTodoAsCompleted,
       todoLength,
       getAllTodos,
-      // getCompletedTodos,
-      // getActiveTodos,
-      currentTodoList,
-      clearTodoList,
-      markAllTodosAsCompleted,
-      markAllButtonClass
+      getCompletedTodos
     }
   }
 })
@@ -132,8 +95,8 @@ export default defineComponent({
         <h1 class="text-3xl font-bold tracking-widest text-white">TODO</h1>
         <div class="mt-12 relative">
           <label class="flex items-center">
-            <button class="absolute left-4" @click="markAllTodosAsCompleted">
-              <i :class="`ri-arrow-down-s-line text-white text-lg ${markAllButtonClass}`"></i>
+            <button class="absolute left-4">
+              <i class="ri-arrow-down-s-line text-white text-lg"></i>
             </button>
 
             <input
@@ -149,9 +112,9 @@ export default defineComponent({
     <div class="bg-[#171823] __parent max-h-full relative flex justify-center">
       <div
         class="w-[540px] absolute top-[-40px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
-        v-if="currentTodoList.length > 0"
+        v-if="todoListClone.length > 0"
       >
-        <div v-for="todo in currentTodoList" :key="todo.id">
+        <div v-for="todo in todoListClone" :key="todo.id">
           <div
             class="px-6 py-5 flex justify-between items-center"
             @mouseover="mouseOver(todo.id)"
@@ -175,36 +138,20 @@ export default defineComponent({
           <div class="w-full bg-[#393A4B] h-[1px]"></div>
         </div>
         <div class="mt-4 px-6 flex items-center justify-between">
-          <div class="w-2/3 flex items-center justify-between">
-            <p class="text-[#5B5E7E] text-sm font-normal tracking-xxs">
-              {{ todoLength }} items left
-            </p>
-            <div class="flex items-center-justify-between">
-              <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs" @click="getAllTodos">
-                All
-              </button>
-              <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
-                @click="getActiveTodos"
-              >
-                Active
-              </button>
-              <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
-                @click="getCompletedTodos"
-              >
-                Completed
-              </button>
-            </div>
+          <p class="text-[#5B5E7E] text-sm font-normal tracking-xxs">{{ todoLength }} items left</p>
+          <div class="flex items-center-justify-between">
+            <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs" @click="getAllTodos">
+              All
+            </button>
+            <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4">Active</button>
+            <button
+              class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
+              @click="getCompletedTodos"
+            >
+              Completed
+            </button>
           </div>
-
-          <button
-            class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
-            @click="clearTodoList"
-            v-if="currentTodoList.length > 0 && currentTodoList.every((todo) => todo.completed)"
-          >
-            Clear Completed
-          </button>
+          <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs">Clear Completed</button>
         </div>
       </div>
     </div>
