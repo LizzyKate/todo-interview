@@ -7,11 +7,61 @@ export default defineComponent({
   setup() {
     const store = useTodoStore()
     const todoList = computed(() => store.todos)
-    const todoListRef = ref(todoList.value) // Create a reactive ref
+    const showAllTodos = ref(true)
+    const showActiveTodos = ref(false)
+    const showCompletedTodos = ref(false)
     const todoLength = computed(() => store.todoLength)
     const todo: Ref<string> = ref('')
-    let useRefList = false
+    const currentFilter: Ref<string | null> = ref('')
+
     const showDeleteButton = store.showDeleteButton
+
+    const toggleFilter = (filterType: string) => {
+      currentFilter.value = filterType
+      showAllTodos.value = filterType === 'all'
+      showActiveTodos.value = filterType === 'active'
+      showCompletedTodos.value = filterType === 'completed'
+      if (showAllTodos.value) {
+        store.displayAllTodos()
+      } else if (showActiveTodos.value) {
+        store.displayActiveTodos()
+      } else if (showCompletedTodos.value) {
+        store.displayCompletedTodos()
+      }
+      // Save the current filter state to localStorage
+      localStorage.setItem('currentFilter', currentFilter.value)
+    }
+
+    const displayTodos = () => {
+      currentFilter.value = localStorage.getItem('currentFilter')
+      if (currentFilter.value === 'active') {
+        showActiveTodos.value = true
+        showAllTodos.value = false
+        showCompletedTodos.value = false
+        store.displayActiveTodos()
+      } else if (currentFilter.value === 'completed') {
+        showCompletedTodos.value = true
+        showAllTodos.value = false
+        showActiveTodos.value = false
+        store.displayCompletedTodos()
+      } else {
+        showAllTodos.value = true
+        showActiveTodos.value = false
+        showCompletedTodos.value = false
+        store.displayAllTodos()
+      }
+    }
+
+    const filteredTodos = computed(() => {
+      if (showAllTodos.value) {
+        return todoList.value
+      } else if (showActiveTodos.value) {
+        return todoList.value.filter((todo: any) => !todo.completed)
+      } else if (showCompletedTodos.value) {
+        return todoList.value.filter((todo: any) => todo.completed)
+      }
+      return []
+    })
 
     const mouseOver = (index: any) => {
       store.updateShowDeleteButton(index, true)
@@ -47,29 +97,12 @@ export default defineComponent({
       store.markAllTodosAsCompleted()
     }
 
-    const markAllButtonClass = computed(() => {
-      return currentTodoList.value.every((todo) => todo.completed)
-        ? 'text-white text-lg'
-        : 'text-gray-500 text-lg'
+    const allTodosCompleted = computed(() => {
+      return todoList.value.every((todo) => todo.completed)
     })
 
-    const getAllTodos = () => {
-      store.displayAllTodos()
-    }
-
-    // const getCompletedTodos = () => {
-    //   const completedTodos = store.displayCompletedTodos()
-    //   todoListRef.value = completedTodos
-    //   console.log(todoListRef.value)
-    //   useRefList = true
-    // }
-    // const getActiveTodos = () => {
-    //   const activeTodos = store.displayActiveTodos()
-    //   todoListClone.value = activeTodos
-    // }
-
-    const currentTodoList = computed(() => {
-      return useRefList ? todoListRef.value : todoList.value
+    const markAllButtonClass = computed(() => {
+      return allTodosCompleted.value ? 'text-white' : 'text-gray-500 '
     })
 
     const clearTodoList = () => {
@@ -78,6 +111,7 @@ export default defineComponent({
     onMounted(() => {
       getTodoLength()
       storeTodoLength()
+      displayTodos()
     })
 
     return {
@@ -89,13 +123,13 @@ export default defineComponent({
       deleteTodo,
       markTodoAsCompleted,
       todoLength,
-      getAllTodos,
-      // getCompletedTodos,
-      // getActiveTodos,
-      currentTodoList,
       clearTodoList,
       markAllTodosAsCompleted,
-      markAllButtonClass
+      markAllButtonClass,
+      todoList,
+      filteredTodos,
+      toggleFilter,
+      currentFilter
     }
   }
 })
@@ -111,7 +145,7 @@ export default defineComponent({
         <div class="mt-12 relative">
           <label class="flex items-center">
             <button class="absolute left-4" @click="markAllTodosAsCompleted">
-              <i :class="`ri-arrow-down-s-line text-white text-lg ${markAllButtonClass}`"></i>
+              <i :class="`ri-arrow-down-s-line text-lg ${markAllButtonClass}`"></i>
             </button>
 
             <input
@@ -127,9 +161,9 @@ export default defineComponent({
     <div class="bg-[#171823] __parent max-h-full relative flex justify-center">
       <div
         class="w-[540px] absolute top-[-40px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
-        v-if="currentTodoList && currentTodoList.length > 0"
+        v-if="todoList && todoList.length > 0"
       >
-        <div v-for="todo in currentTodoList" :key="todo.id">
+        <div v-for="todo in filteredTodos" :key="todo.id">
           <div
             class="px-6 py-5 flex justify-between items-center __todo-item"
             @mouseover="mouseOver(todo.id)"
@@ -158,18 +192,27 @@ export default defineComponent({
               {{ todoLength }} items left
             </p>
             <div class="flex items-center-justify-between">
-              <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs" @click="getAllTodos">
+              <button
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                  currentFilter === 'all' ? 'border border-white p-2 rounded-md' : ''
+                }`"
+                @click="() => toggleFilter('all')"
+              >
                 All
               </button>
               <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
-                @click="getActiveTodos"
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                  currentFilter === 'active' ? 'border border-white p-2 rounded-md' : ''
+                }`"
+                @click="() => toggleFilter('active')"
               >
                 Active
               </button>
               <button
-                class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
-                @click="getCompletedTodos"
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                  currentFilter === 'completed' ? 'border border-white p-2 rounded-md' : ''
+                }`"
+                @click="() => toggleFilter('completed')"
               >
                 Completed
               </button>
@@ -179,7 +222,7 @@ export default defineComponent({
           <button
             class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
             @click="clearTodoList"
-            v-if="currentTodoList.length > 0 && currentTodoList.some((todo) => todo.completed)"
+            v-if="todoList.length > 0 && todoList.some((todo) => todo.completed)"
           >
             Clear Completed
           </button>

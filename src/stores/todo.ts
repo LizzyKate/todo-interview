@@ -109,16 +109,21 @@ export const useTodoStore = defineStore('todo', {
     },
 
     displayAllTodos(this: TodoState) {
-      this.todosClone = this.todos
-      return [...this.todosClone]
+      localStorage.setItem('currentFilter', 'all')
+      return this.todos
     },
 
     displayCompletedTodos(this: TodoState) {
-      this.todosClone = this.todos
-      return this.todosClone.filter((todo) => todo.completed)
+      localStorage.setItem('currentFilter', 'completed')
+      const completedTodos = this.todos.filter((todo) => todo.completed)
+      this.todosClone = completedTodos
+      store({ key: 'completedTodos', value: completedTodos })
     },
     displayActiveTodos(this: TodoState) {
-      return this.todosClone.filter((todo) => !todo.completed)
+      localStorage.setItem('currentFilter', 'active')
+      const activeTodos = this.todos.filter((todo) => !todo.completed)
+      this.todosClone = activeTodos
+      store({ key: 'activeTodos', value: activeTodos })
     },
 
     clearTodos(this: TodoState) {
