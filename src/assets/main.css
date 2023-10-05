@@ -11,3 +11,17 @@ span,
 button {
   font-family: Josefin Sans;
 }
+
+.__container {
+  background-image: url('@/assets/images/bg.png');
+}
+.__parent {
+  height: calc(100vh - 300px);
+}
+::-webkit-scrollbar {
+  display: none;
+}
+input[type='checkbox']:checked + span {
+  text-decoration: line-through;
+  color: #4d5067;
+}
