@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Todo } from '@/types/todo'
-import { store, get, clear } from '@/utils/localstorage'
+import { store, get } from '@/utils/localstorage'
 
 interface TodoState {
   todos: Todo[]
@@ -42,14 +42,19 @@ export const useTodoStore = defineStore('todo', {
     markAllTodosAsCompleted(this: TodoState) {
       this.todosClone = this.todos
 
+      const completedCount = this.todosClone.filter((todo) => todo.completed).length
+      const allCompleted = completedCount === this.todosClone.length
+
       const updatedTodos = this.todosClone.map((todo) => ({
         ...todo,
-        completed: !todo.completed
+        completed: !allCompleted
       }))
+
       store({ key: 'todos', value: updatedTodos })
       this.todos = [...updatedTodos]
       this.todosClone = [...this.todos]
     },
+
     // toggle completed status of todo item
     markAsCompleted(this: TodoState, id: number) {
       this.todosClone = this.todos
@@ -80,9 +85,17 @@ export const useTodoStore = defineStore('todo', {
     },
 
     clearTodos(this: TodoState) {
-      clear()
-      this.todos = []
-      this.todosClone = []
+      this.todosClone = this.todos
+      const updatedTodos = this.todosClone.filter((todo) => !todo.completed)
+
+      const reindexedTodos = updatedTodos.map((todo, index) => ({
+        ...todo,
+        id: index + 1
+      }))
+
+      store({ key: 'todos', value: reindexedTodos })
+      this.todos = [...reindexedTodos]
+      this.todosClone = [...reindexedTodos]
     }
   }
 })

@@ -12,8 +12,4 @@ const get = ({ key }: IStore) => {
   return storedValue ? JSON.parse(storedValue) : []
 }
 
-const clear = () => {
-  localStorage.clear()
-}
-
-export { store, get, clear }
+export { store, get }

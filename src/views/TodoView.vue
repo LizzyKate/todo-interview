@@ -201,7 +201,7 @@ export default defineComponent({
           <button
             class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
             @click="clearTodoList"
-            v-if="currentTodoList.length > 0 && currentTodoList.every((todo) => todo.completed)"
+            v-if="currentTodoList.length > 0 && currentTodoList.some((todo) => todo.completed)"
           >
             Clear Completed
           </button>
