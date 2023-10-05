@@ -1,6 +1,6 @@
 # Todo
 
-![Todo APP]('../../src/assets/images/todo.png')
+![Todo APP]('/todo.png')
 
 This is a todo app that keep tracks of tasks and shows tasks are done
 
