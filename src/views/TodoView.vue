@@ -7,11 +7,54 @@ export default defineComponent({
   setup() {
     const store = useTodoStore()
     const todoList = computed(() => store.todos)
-    const todoListRef = ref(todoList.value) // Create a reactive ref
+    const showAllTodos = ref(true)
+    const showActiveTodos = ref(false)
+    const showCompletedTodos = ref(false)
     const todoLength = computed(() => store.todoLength)
     const todo: Ref<string> = ref('')
-    let useRefList = false
+    const currentFilter = ref('all')
+
     const showDeleteButton = store.showDeleteButton
+
+    const toggleFilter = (filterType: string) => {
+      currentFilter.value = filterType
+      showAllTodos.value = filterType === 'all'
+      showActiveTodos.value = filterType === 'active'
+      showCompletedTodos.value = filterType === 'completed'
+      if (showAllTodos.value) {
+        store.displayAllTodos()
+      } else if (showActiveTodos.value) {
+        store.displayActiveTodos()
+      } else if (showCompletedTodos.value) {
+        store.displayCompletedTodos()
+      }
+    }
+
+    const filteredTodos = computed(() => {
+      if (showAllTodos.value) {
+        return todoList.value
+      } else if (showActiveTodos.value) {
+        return todoList.value.filter((todo: any) => !todo.completed)
+      } else if (showCompletedTodos.value) {
+        return todoList.value.filter((todo: any) => todo.completed)
+      }
+      return []
+    })
+
+    const displayTodos = () => {
+      const savedFilter = localStorage.getItem('currentFilter')
+      if (savedFilter) {
+        currentFilter.value = savedFilter
+      }
+      if (currentFilter.value === 'all') {
+        console.log('all')
+        store.displayAllTodos()
+      } else if (currentFilter.value === 'active') {
+        store.displayActiveTodos()
+      } else if (currentFilter.value === 'completed') {
+        store.displayCompletedTodos()
+      }
+    }
 
     const mouseOver = (index: any) => {
       store.updateShowDeleteButton(index, true)
@@ -48,28 +91,10 @@ export default defineComponent({
     }
 
     const markAllButtonClass = computed(() => {
-      return currentTodoList.value.every((todo) => todo.completed)
-        ? 'text-white text-lg'
-        : 'text-gray-500 text-lg'
-    })
-
-    const getAllTodos = () => {
-      store.displayAllTodos()
-    }
-
-    // const getCompletedTodos = () => {
-    //   const completedTodos = store.displayCompletedTodos()
-    //   todoListRef.value = completedTodos
-    //   console.log(todoListRef.value)
-    //   useRefList = true
-    // }
-    // const getActiveTodos = () => {
-    //   const activeTodos = store.displayActiveTodos()
-    //   todoListClone.value = activeTodos
-    // }
-
-    const currentTodoList = computed(() => {
-      return useRefList ? todoListRef.value : todoList.value
+      return true
+      // return currentTodoList.value.every((todo) => todo.completed)
+      //   ? 'text-white text-lg'
+      //   : 'text-gray-500 text-lg'
     })
 
     const clearTodoList = () => {
@@ -78,6 +103,7 @@ export default defineComponent({
     onMounted(() => {
       getTodoLength()
       storeTodoLength()
+      displayTodos()
     })
 
     return {
@@ -89,13 +115,12 @@ export default defineComponent({
       deleteTodo,
       markTodoAsCompleted,
       todoLength,
-      getAllTodos,
-      // getCompletedTodos,
-      // getActiveTodos,
-      currentTodoList,
       clearTodoList,
       markAllTodosAsCompleted,
-      markAllButtonClass
+      markAllButtonClass,
+      todoList,
+      filteredTodos,
+      toggleFilter
     }
   }
 })
@@ -108,6 +133,7 @@ export default defineComponent({
     >
       <div class="w-[540px]">
         <h1 class="text-3xl font-bold tracking-widest text-white">TODO</h1>
+        {}
         <div class="mt-12 relative">
           <label class="flex items-center">
             <button class="absolute left-4" @click="markAllTodosAsCompleted">
@@ -127,9 +153,9 @@ export default defineComponent({
     <div class="bg-[#171823] __parent max-h-full relative flex justify-center">
       <div
         class="w-[540px] absolute top-[-40px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
-        v-if="currentTodoList && currentTodoList.length > 0"
+        v-if="todoList && todoList.length > 0"
       >
-        <div v-for="todo in currentTodoList" :key="todo.id">
+        <div v-for="todo in filteredTodos" :key="todo.id">
           <div
             class="px-6 py-5 flex justify-between items-center __todo-item"
             @mouseover="mouseOver(todo.id)"
@@ -158,18 +184,21 @@ export default defineComponent({
               {{ todoLength }} items left
             </p>
             <div class="flex items-center-justify-between">
-              <button class="text-[#5B5E7E] text-sm font-normal tracking-xxs" @click="getAllTodos">
+              <button
+                class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
+                @click="() => toggleFilter('all')"
+              >
                 All
               </button>
               <button
                 class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
-                @click="getActiveTodos"
+                @click="() => toggleFilter('active')"
               >
                 Active
               </button>
               <button
                 class="text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4"
-                @click="getCompletedTodos"
+                @click="() => toggleFilter('completed')"
               >
                 Completed
               </button>
@@ -179,7 +208,7 @@ export default defineComponent({
           <button
             class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
             @click="clearTodoList"
-            v-if="currentTodoList.length > 0 && currentTodoList.some((todo) => todo.completed)"
+            v-if="todoList.length > 0 && todoList.some((todo) => todo.completed)"
           >
             Clear Completed
           </button>
