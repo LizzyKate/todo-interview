@@ -1,11 +1,6 @@
 # Todo
 
-<<<<<<< HEAD
 ![Todo APP]('/todo.png')
-=======
-![Todo APP]('src/assets/images/todo.png')
->>>>>>> main
-
 This is a todo app that keep tracks of tasks and shows tasks are done
 
 ## Features
