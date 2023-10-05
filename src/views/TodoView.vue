@@ -137,10 +137,10 @@ export default defineComponent({
 <template>
   <section class="h-screen max-h-full">
     <div
-      class="__container h-[300px] bg-center bg-cover bg-no-repeat flex items-center justify-center"
+      class="__container h-[300px] bg-center bg-cover bg-no-repeat md:flex items-center justify-center"
     >
-      <div class="w-[540px]">
-        <h1 class="text-3xl font-bold tracking-widest text-white">TODO</h1>
+      <div class="md:w-[540px] w-4/5 mx-auto">
+        <h1 class="text-3xl font-bold tracking-widest text-white md:mt-0 pt-12">TODO</h1>
         <div class="mt-12 relative">
           <label class="flex items-center">
             <button class="absolute left-4" @click="markAllTodosAsCompleted">
@@ -159,7 +159,7 @@ export default defineComponent({
     </div>
     <div class="bg-[#171823] __parent max-h-full relative flex justify-center">
       <div
-        class="w-[540px] absolute top-[-40px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
+        class="md:w-[540px] w-4/5 absolute md:top-[-40px] top-[-90px] z-50 max-h-[439px] overflow-scroll rounded-md bg-[#25273D] shadow-3xl pb-5"
         v-if="todoList && todoList.length > 0"
       >
         <div v-for="todo in filteredTodos" :key="todo.id">
@@ -185,14 +185,14 @@ export default defineComponent({
           </div>
           <div class="w-full bg-[#393A4B] h-[1px]"></div>
         </div>
-        <div class="mt-4 px-6 flex items-center justify-between">
-          <div class="w-2/3 flex items-center justify-between">
+        <div class="mt-4 px-6 md:flex items-center justify-between">
+          <div class="w-2/3 md:flex items-center justify-between">
             <p class="text-[#5B5E7E] text-sm font-normal tracking-xxs">
               {{ todoLength }} items left
             </p>
-            <div class="flex items-center-justify-between">
+            <div class="md:mt-0 mt-4 flex items-center-justify-between">
               <button
-                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs ml-4 ${
+                :class="`text-[#5B5E7E] text-sm font-normal tracking-xxs md:ml-4 ml-0 ${
                   currentFilter === 'all' ? 'border border-white p-2 rounded-md' : ''
                 }`"
                 @click="() => toggleFilter('all')"
@@ -219,7 +219,7 @@ export default defineComponent({
           </div>
 
           <button
-            class="text-[#5B5E7E] text-sm font-normal tracking-xxs"
+            class="text-[#5B5E7E] text-sm font-normal tracking-xxs md:mt-0 mt-6"
             @click="clearTodoList"
             v-if="todoList.length > 0 && todoList.some((todo) => todo.completed)"
           >
