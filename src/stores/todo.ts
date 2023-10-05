@@ -15,9 +15,9 @@ export const useTodoStore = defineStore('todo', {
     const initialTodos = get({ key: 'todos' }) as Todo[]
     return {
       todos: initialTodos,
-      todosClone: initialTodos.slice(), // Create a shallow copy
+      todosClone: initialTodos.slice(),
       showDeleteButton: {} as { [key: number]: boolean },
-      todoLength: initialTodos.length // Initialize todoLength
+      todoLength: initialTodos.length
     }
   },
   actions: {
@@ -119,6 +119,7 @@ export const useTodoStore = defineStore('todo', {
       this.todosClone = completedTodos
       store({ key: 'completedTodos', value: completedTodos })
     },
+
     displayActiveTodos(this: TodoState) {
       localStorage.setItem('currentFilter', 'active')
       const activeTodos = this.todos.filter((todo) => !todo.completed)

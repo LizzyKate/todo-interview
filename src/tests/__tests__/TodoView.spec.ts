@@ -169,7 +169,6 @@ describe('TodoView', () => {
     const todoIdToIncomplete = 2
     store.markAsCompleted(todoIdToIncomplete)
 
-    // Check if the specified todo item is marked as incomplete
     const incompleteTodo = store.todosClone.find((todo) => todo.id === todoIdToIncomplete)
     if (incompleteTodo !== undefined) {
       incompleteTodo.completed = false
@@ -192,5 +191,73 @@ describe('TodoView', () => {
     // Ensure that remaining todos are reindexed
     expect(store.todos[0].id).toBe(1)
     expect(store.todos[1].id).toBe(2)
+  })
+
+  it('should display completed todos when "displayCompletedTodos" is called', async () => {
+    const todos = [
+      { id: 1, text: 'Todo 1', completed: true },
+      { id: 2, text: 'Todo 2', completed: false },
+      { id: 3, text: 'Todo 3', completed: true }
+    ]
+    store.todos = todos
+    store.displayCompletedTodos()
+    await wrapper.vm.$nextTick()
+    const displayedTodos = store.todosClone
+    const allCompleted = displayedTodos.every((todo) => todo.completed === true)
+    expect(allCompleted).toBe(true)
+    const numCompletedTodos = todos.filter((todo) => todo.completed).length
+    expect(displayedTodos.length).toBe(numCompletedTodos)
+  })
+
+  it('should display active todos when "displayActiveTodos" is called', async () => {
+    const todos = [
+      { id: 1, text: 'Todo 1', completed: true },
+      { id: 2, text: 'Todo 2', completed: false },
+      { id: 3, text: 'Todo 3', completed: false }
+    ]
+
+    store.todos = todos
+    store.displayActiveTodos()
+
+    await wrapper.vm.$nextTick()
+
+    const displayedTodos = store.todosClone
+    const allActive = displayedTodos.every((todo) => !todo.completed)
+    expect(allActive).toBe(true)
+    const numActiveTodos = todos.filter((todo) => !todo.completed).length
+    expect(displayedTodos.length).toBe(numActiveTodos)
+  })
+
+  it('should display all todos when "displayAllTodos" is called', async () => {
+    const todos = [
+      { id: 1, text: 'Todo 1', completed: true },
+      { id: 2, text: 'Todo 2', completed: false },
+      { id: 3, text: 'Todo 3', completed: true }
+    ]
+
+    store.todos = todos
+
+    const displayedTodos = store.displayAllTodos()
+
+    const currentFilter = localStorage.getItem('currentFilter')
+    expect(currentFilter).toBe('all')
+    expect(displayedTodos).toEqual(todos)
+  })
+
+  it('should update the filter state when "toggleFilter" is called', async () => {
+    // Initially, all filters should be false
+    expect(wrapper.vm.currentFilter).toBe(null)
+
+    // Call toggleFilter with 'active' filter
+    await wrapper.vm.toggleFilter('active')
+    expect(wrapper.vm.currentFilter).toBe('active')
+
+    // Call toggleFilter with 'completed' filter
+    await wrapper.vm.toggleFilter('completed')
+    expect(wrapper.vm.currentFilter).toBe('completed')
+
+    // Call toggleFilter with 'all' filter
+    await wrapper.vm.toggleFilter('all')
+    expect(wrapper.vm.currentFilter).toBe('all')
   })
 })

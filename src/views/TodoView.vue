@@ -28,7 +28,6 @@ export default defineComponent({
       } else if (showCompletedTodos.value) {
         store.displayCompletedTodos()
       }
-      // Save the current filter state to localStorage
       localStorage.setItem('currentFilter', currentFilter.value)
     }
 
